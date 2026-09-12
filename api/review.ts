@@ -146,7 +146,7 @@ async function generateJson<T>(system: string, user: string, schema: unknown, ap
       contents: [{ role: 'user', parts: [{ text: user }] }],
       generationConfig: {
         temperature: 0.3,
-        maxOutputTokens: 1024,
+        maxOutputTokens: 8192, // 3.x 계열은 내부 추론 토큰도 여기에 포함돼 작으면 JSON이 잘린다
         responseMimeType: 'application/json',
         responseSchema: schema,
       },
@@ -168,8 +168,13 @@ async function generateJson<T>(system: string, user: string, schema: unknown, ap
   if (!res.ok) throw new GeminiError(res.status, json.error?.message ?? `HTTP ${res.status}`);
   if (json.promptFeedback?.blockReason) throw new GeminiError(502, `blocked: ${json.promptFeedback.blockReason}`);
   const text = json.candidates?.[0]?.content?.parts?.map((p) => p.text ?? '').join('') ?? '';
-  if (!text.trim()) throw new GeminiError(502, 'empty response');
-  return JSON.parse(text) as T;
+  if (!text.trim()) throw new GeminiError(502, `empty response (${json.candidates?.[0]?.finishReason ?? '?'})`);
+  const cleaned = text.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+  try {
+    return JSON.parse(cleaned) as T;
+  } catch {
+    throw new GeminiError(502, `bad json (${json.candidates?.[0]?.finishReason ?? '?'}): ${cleaned.slice(0, 120)}`);
+  }
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -235,6 +240,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (e.status === 401 || e.status === 403) return res.status(503).json({ error: 'auth' });
       return res.status(502).json({ error: 'upstream', status: e.status, detail: e.message.slice(0, 300) });
     }
-    return res.status(500).json({ error: 'internal' });
+    return res.status(500).json({ error: 'internal', detail: e instanceof Error ? e.message.slice(0, 200) : String(e) });
   }
 }
