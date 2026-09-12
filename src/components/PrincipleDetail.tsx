@@ -77,7 +77,7 @@ export function PrincipleDetail({ data, principle: p, state, onAdopt, onDrop, on
         ) : (
           <p className="check-note">
             {p.check_type === 'auto'
-              ? '포트폴리오를 입력하면 자동으로 점검됩니다. (v1)'
+              ? '포트폴리오를 입력하면 점검 화면에서 자동으로 판정됩니다.'
               : '수치가 아니라 스스로 돌아보는 원칙입니다.'}
           </p>
         )}

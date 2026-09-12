@@ -1,5 +1,5 @@
-import { IconBook, IconClock, IconHome, IconPie } from './Icons';
-import type { Route } from './Header';
+import { IconBook, IconClock, IconHome, IconPie, IconScale } from './Icons';
+import { navRoute, type Route } from './Header';
 
 interface Props {
   route: Route;
@@ -8,32 +8,33 @@ interface Props {
 }
 
 export function BottomNav({ route, count, go }: Props) {
-  const isHomeOrLib = route === 'home' || route === 'library' || route === 'principle';
+  const active = navRoute(route);
+  const cls = (r: Route) => (active === r || (r === 'library' && active === 'home') ? 'bn-item active' : 'bn-item');
   return (
     <nav className="bottomnav" aria-label="하단 메뉴">
-      <button type="button" className={isHomeOrLib ? 'bn-item active' : 'bn-item'} onClick={() => go('#/library')}>
+      <button type="button" className={cls('library')} onClick={() => go('#/library')}>
         <IconHome />
         <span>원칙</span>
       </button>
-      <button
-        type="button"
-        className={route === 'constitution' ? 'bn-item active' : 'bn-item'}
-        onClick={() => go('#/constitution')}
-      >
+      <button type="button" className={cls('constitution')} onClick={() => go('#/constitution')}>
         <span className="bn-icon-wrap">
           <IconBook />
           {count > 0 && <span className="bn-badge">{count}</span>}
         </span>
         <span>헌법</span>
       </button>
-      <span className="bn-item disabled" aria-disabled="true" title="준비 중">
+      <button type="button" className={cls('portfolio')} onClick={() => go('#/portfolio')}>
         <IconPie />
         <span>포폴</span>
-      </span>
-      <span className="bn-item disabled" aria-disabled="true" title="준비 중">
+      </button>
+      <button type="button" className={cls('check')} onClick={() => go('#/check')}>
+        <IconScale />
+        <span>점검</span>
+      </button>
+      <button type="button" className={cls('history')} onClick={() => go('#/history')}>
         <IconClock />
         <span>기록</span>
-      </span>
+      </button>
     </nav>
   );
 }

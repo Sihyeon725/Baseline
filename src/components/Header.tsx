@@ -1,7 +1,16 @@
 import { useState } from 'react';
 import { IconMenu, IconX, LogoMark } from './Icons';
 
-export type Route = 'home' | 'library' | 'principle' | 'constitution';
+export type Route =
+  | 'home'
+  | 'library'
+  | 'principle'
+  | 'constitution'
+  | 'portfolio'
+  | 'check'
+  | 'history'
+  | 'change'
+  | 'narrative';
 
 interface Props {
   route: Route;
@@ -9,16 +18,24 @@ interface Props {
   go: (hash: string) => void;
 }
 
-const NAV: { hash: string; label: string; route: Route | null; soon?: boolean }[] = [
+const NAV: { hash: string; label: string; route: Route }[] = [
   { hash: '#/library', label: '원칙 라이브러리', route: 'library' },
   { hash: '#/constitution', label: '나의 헌법', route: 'constitution' },
-  { hash: '', label: '포트폴리오', route: null, soon: true },
-  { hash: '', label: '기록', route: null, soon: true },
+  { hash: '#/portfolio', label: '포트폴리오', route: 'portfolio' },
+  { hash: '#/check', label: '점검', route: 'check' },
+  { hash: '#/history', label: '기록', route: 'history' },
 ];
+
+/** 상단/하단 메뉴에서 활성으로 표시할 대표 경로 */
+export function navRoute(route: Route): Route {
+  if (route === 'principle') return 'library';
+  if (route === 'change' || route === 'narrative') return 'check';
+  return route;
+}
 
 export function Header({ route, count, go }: Props) {
   const [open, setOpen] = useState(false);
-  const activeRoute: Route = route === 'principle' ? 'library' : route;
+  const activeRoute = navRoute(route);
 
   const nav = (hash: string) => {
     setOpen(false);
@@ -34,23 +51,17 @@ export function Header({ route, count, go }: Props) {
         </button>
 
         <nav className="topnav" aria-label="주 메뉴">
-          {NAV.map((n) =>
-            n.soon ? (
-              <span key={n.label} className="topnav-item soon" title="준비 중">
-                {n.label}
-              </span>
-            ) : (
-              <button
-                key={n.label}
-                type="button"
-                className={activeRoute === n.route ? 'topnav-item active' : 'topnav-item'}
-                onClick={() => nav(n.hash)}
-              >
-                {n.label}
-                {n.route === 'constitution' && count > 0 && <span className="count-dot">{count}</span>}
-              </button>
-            ),
-          )}
+          {NAV.map((n) => (
+            <button
+              key={n.label}
+              type="button"
+              className={activeRoute === n.route ? 'topnav-item active' : 'topnav-item'}
+              onClick={() => nav(n.hash)}
+            >
+              {n.label}
+              {n.route === 'constitution' && count > 0 && <span className="count-dot">{count}</span>}
+            </button>
+          ))}
         </nav>
 
         <button
@@ -66,17 +77,11 @@ export function Header({ route, count, go }: Props) {
 
       {open && (
         <div className="drawer" role="dialog" aria-label="메뉴">
-          {NAV.map((n) =>
-            n.soon ? (
-              <span key={n.label} className="drawer-item soon">
-                {n.label} <small>준비 중</small>
-              </span>
-            ) : (
-              <button key={n.label} type="button" className="drawer-item" onClick={() => nav(n.hash)}>
-                {n.label}
-              </button>
-            ),
-          )}
+          {NAV.map((n) => (
+            <button key={n.label} type="button" className="drawer-item" onClick={() => nav(n.hash)}>
+              {n.label}
+            </button>
+          ))}
         </div>
       )}
     </header>

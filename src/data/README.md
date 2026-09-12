@@ -57,3 +57,18 @@
 - 더미 카드 3장은 `(더미)` 표시가 붙어 있습니다. 전부 교체하세요. 인용문(`quote`)은 현재 전부 `null`이며, 출처가 확인된 것만 넣습니다.
 - `check_type`이 `auto`인 카드는 명세서 5장 표에 판정식이 있어야 합니다 (v1에서 사용).
 - JSON 문법 오류가 나면 빌드가 실패합니다. `npm run build`로 확인하세요.
+
+## 자동 점검 규칙과 연결 (v1)
+
+`check_type: "auto"`인 카드는 `src/lib/rules.ts`의 `RULES`에 **같은 `principle_id`**로 판정식이 있어야 점검됩니다. 현재 구현된 판정식:
+
+| principle_id | 판정식 | user_param.key |
+|---|---|---|
+| bogle_01 | 인덱스 ETF 비중 ≥ P | `index_min_weight` |
+| bogle_02 | 최근 90일 매매 횟수 ≤ N | `max_trades_90d` |
+| lynch_01 | 모든 개별 주식에 why_i_know 입력 | — |
+| buffett_01 | 보유 종목 수 ≤ N | `max_holdings` |
+| buffett_02 | 평균 보유기간 ≥ D일 | `min_holding_days` |
+| dalio_01 | 보유 자산군 종류 ≥ N | `min_asset_classes` |
+
+카드의 `user_param.key`가 위 키와 같아야 사용자가 정한 값이 판정에 쓰입니다. 새 규칙을 추가하려면 `rules.ts`에 판정식을 쓰고 카드 ID를 맞추세요. 판정식이 없는 auto 카드는 점검 화면에 "판정식 없음"으로 표시됩니다.

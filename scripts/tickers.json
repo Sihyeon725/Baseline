@@ -1,0 +1,42 @@
+{
+  "_comment": "서버 배치가 종가를 수집하는 종목 목록. 사용자 데이터는 브라우저에만 있으므로 서버는 이 목록만 안다. 자주 쓰이는 종목을 여기에 추가하세요. market: KR(네이버 fchart, 6자리 코드) / US(Yahoo chart)",
+  "quotes": [
+    { "ticker": "005930", "market": "KR" },
+    { "ticker": "000660", "market": "KR" },
+    { "ticker": "035420", "market": "KR" },
+    { "ticker": "035720", "market": "KR" },
+    { "ticker": "005380", "market": "KR" },
+    { "ticker": "051910", "market": "KR" },
+    { "ticker": "006400", "market": "KR" },
+    { "ticker": "207940", "market": "KR" },
+    { "ticker": "068270", "market": "KR" },
+    { "ticker": "373220", "market": "KR" },
+    { "ticker": "069500", "market": "KR" },
+    { "ticker": "102110", "market": "KR" },
+    { "ticker": "360750", "market": "KR" },
+    { "ticker": "133690", "market": "KR" },
+    { "ticker": "379800", "market": "KR" },
+    { "ticker": "148070", "market": "KR" },
+    { "ticker": "132030", "market": "KR" },
+    { "ticker": "SPY", "market": "US" },
+    { "ticker": "VOO", "market": "US" },
+    { "ticker": "VTI", "market": "US" },
+    { "ticker": "QQQ", "market": "US" },
+    { "ticker": "SCHD", "market": "US" },
+    { "ticker": "TLT", "market": "US" },
+    { "ticker": "GLD", "market": "US" },
+    { "ticker": "AAPL", "market": "US" },
+    { "ticker": "MSFT", "market": "US" },
+    { "ticker": "NVDA", "market": "US" },
+    { "ticker": "AMZN", "market": "US" },
+    { "ticker": "GOOGL", "market": "US" },
+    { "ticker": "META", "market": "US" },
+    { "ticker": "TSLA", "market": "US" },
+    { "ticker": "BRK-B", "market": "US" }
+  ],
+  "benchmarks": [
+    { "key": "kospi", "name": "코스피", "market": "KR", "symbol": "KOSPI", "currency": "KRW" },
+    { "key": "sp500", "name": "S&P 500", "market": "US", "symbol": "^GSPC", "currency": "USD" }
+  ],
+  "fx": { "market": "US", "symbol": "KRW=X" }
+}

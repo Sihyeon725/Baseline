@@ -53,6 +53,23 @@
       }
     },
     {
+      "principle_id": "bogle_02",
+      "master": "bogle",
+      "title": "(더미) 자주 사고팔지 않는다.",
+      "quote": null,
+      "body": "(더미 문장입니다. 작성자가 본인의 말로 교체하세요.) 매매는 비용이고, 비용은 확실한 손실입니다. 분기당 매매 횟수의 상한을 정해 두고, 그 안에서만 움직입니다. 상한을 넘기려 할 때는 왜 지금이어야 하는지 먼저 씁니다.",
+      "source_book": "모든 주식을 소유하라",
+      "check_type": "auto",
+      "user_param": {
+        "key": "max_trades_90d",
+        "label": "분기 최대 매매 횟수",
+        "unit": "회",
+        "default": 6,
+        "min": 0,
+        "max": 100
+      }
+    },
+    {
       "principle_id": "lynch_01",
       "master": "lynch",
       "title": "(더미) 아는 것에 투자한다.",
@@ -69,7 +86,7 @@
       "quote": null,
       "body": "(더미 문장입니다. 작성자가 본인의 말로 교체하세요.) 확신이 있는 소수의 기업에만 자금을 둡니다. 종목 수가 늘수록 각 기업을 제대로 알기 어려워집니다. 최대 종목 수를 정해 두고, 새로 사려면 하나를 내보낼 이유부터 씁니다.",
       "source_book": "워런 버핏의 주주 서한",
-      "check_type": "self",
+      "check_type": "auto",
       "user_param": {
         "key": "max_holdings",
         "label": "최대 종목 수",
@@ -77,6 +94,40 @@
         "default": 10,
         "min": 1,
         "max": 100
+      }
+    },
+    {
+      "principle_id": "buffett_02",
+      "master": "buffett",
+      "title": "(더미) 오래 보유한다.",
+      "quote": null,
+      "body": "(더미 문장입니다. 작성자가 본인의 말로 교체하세요.) 살 때부터 몇 년을 들고 갈 생각으로 삽니다. 최소 보유기간을 정해 두면, 가격이 흔들릴 때 팔 이유가 아니라 산 이유를 먼저 보게 됩니다.",
+      "source_book": "워런 버핏의 주주 서한",
+      "check_type": "auto",
+      "user_param": {
+        "key": "min_holding_days",
+        "label": "최소 평균 보유기간",
+        "unit": "일",
+        "default": 365,
+        "min": 1,
+        "max": 3650
+      }
+    },
+    {
+      "principle_id": "dalio_01",
+      "master": "dalio",
+      "title": "(더미) 자산군을 분산한다.",
+      "quote": null,
+      "body": "(더미 문장입니다. 작성자가 본인의 말로 교체하세요.) 주식 한 가지에만 기대지 않습니다. 성장과 침체, 인플레이션과 디플레이션 각 국면에서 다르게 움직이는 자산군을 함께 둡니다. 최소 몇 종류의 자산군을 가질지 정해 둡니다.",
+      "source_book": "원칙",
+      "check_type": "auto",
+      "user_param": {
+        "key": "min_asset_classes",
+        "label": "최소 자산군 종류",
+        "unit": "종류",
+        "default": 3,
+        "min": 1,
+        "max": 6
       }
     }
   ]

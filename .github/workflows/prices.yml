@@ -1,0 +1,32 @@
+# 하루 1회 장 마감 후 종가를 수집해 public/prices/latest.json 을 갱신하고 커밋한다.
+# 정적 호스팅(Vercel 등)이 main 브랜치를 자동 배포하면 그대로 반영된다.
+name: Daily prices
+
+on:
+  schedule:
+    # 22:30 UTC = 07:30 KST (미국장 마감 후, 한국장 개장 전)
+    - cron: '30 22 * * 1-5'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Fetch closes
+        run: node scripts/fetch-prices.mjs
+        env:
+          KRX_API_KEY: ${{ secrets.KRX_API_KEY }}
+      - name: Commit
+        run: |
+          git config user.name "prices-bot"
+          git config user.email "prices-bot@users.noreply.github.com"
+          git add public/prices/latest.json
+          git diff --cached --quiet || git commit -m "prices: $(date -u +%Y-%m-%d)"
+          git push

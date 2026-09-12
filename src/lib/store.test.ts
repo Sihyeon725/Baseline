@@ -51,7 +51,7 @@ describe('export / import round trip', () => {
   it('rejects foreign files', () => {
     expect(() => parseState('{"foo":1}')).toThrow();
     expect(() => parseState('not json')).toThrow();
-    expect(() => parseState({ schema: 'invest-principles', version: 2, adopted_principles: [] })).toThrow();
+    expect(() => parseState({ schema: 'invest-principles', version: 3, adopted_principles: [] })).toThrow();
   });
 
   it('drops non-numeric params silently', () => {
@@ -63,5 +63,54 @@ describe('export / import round trip', () => {
       ],
     });
     expect(back.adopted_principles[0].params).toEqual({ a: 1 });
+  });
+});
+
+describe('v2 state', () => {
+  it('migrates a v1 backup and fills defaults', () => {
+    const back = parseState({ schema: 'invest-principles', version: 1, adopted_principles: [] });
+    expect(back.version).toBe(2);
+    expect(back.holdings).toEqual([]);
+    expect(back.trades).toEqual([]);
+    expect(back.principle_history).toEqual([]);
+    expect(back.custom_principles).toEqual([]);
+    expect(back.settings.usd_krw).toBeGreaterThan(0);
+  });
+
+  it('round-trips holdings, trades, history and custom principles', async () => {
+    const { addCustomPrinciple, addHistory, addTrade, lastNarrative } = await import('./store');
+    let s = emptyState();
+    s = addTrade(
+      s,
+      { trade_id: 't1', ticker: 'spy', side: 'buy', quantity: 2, price: 100, traded_at: '2026-01-01T00:00:00Z', principle_tags: ['bogle_01'], note: 'n' },
+      { ticker: 'SPY', name: 'SPY', asset_class: 'index_etf', currency: 'USD', why_i_know: '' },
+    );
+    s = addHistory(s, {
+      history_id: 'h1',
+      changed_at: '2026-02-01T00:00:00Z',
+      from_principle: 'bogle_01',
+      to_principle: null,
+      portfolio_return_at_change: 3.2,
+      answer_what_changed: 'a',
+      answer_why: 'b',
+      answer_tradeoff: 'c',
+      ai_followup_question: 'q',
+      ai_followup_answered: false,
+      ai_source: 'fallback',
+    });
+    s = addCustomPrinciple(s, { principle_id: 'custom_1', title: 't', body: 'b', created_at: '2026-03-01T00:00:00Z', ai_review: null, ai_source: 'claude' });
+    const back = parseState(serializeForExport(s));
+    expect(back.holdings[0].ticker).toBe('SPY');
+    expect(back.trades[0].ticker).toBe('SPY');
+    expect(back.trades[0].note).toBe('n');
+    expect(back.principle_history[0].ai_followup_answered).toBe(false);
+    expect(back.custom_principles[0].principle_id).toBe('custom_1');
+    expect(back.adopted_principles.find((a) => a.principle_id === 'custom_1')?.source).toBe('custom');
+    expect(lastNarrative(back, 'bogle_01')?.answer_why).toBe('b');
+  });
+
+  it('rejects trades without a side or date', () => {
+    expect(() => parseState({ schema: 'invest-principles', version: 2, adopted_principles: [], trades: [{ ticker: 'A', side: 'hold', traded_at: '2026-01-01' }] })).toThrow();
+    expect(() => parseState({ schema: 'invest-principles', version: 2, adopted_principles: [], trades: [{ ticker: 'A', side: 'buy', traded_at: 'nope' }] })).toThrow();
   });
 });
