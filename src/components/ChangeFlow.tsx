@@ -43,7 +43,7 @@ export function ChangeFlow({ data, state, fromId, toId, returnPct, onCommit, go 
   const [busy, setBusy] = useState(false);
   const [step, setStep] = useState<Step>('write');
   const [question, setQuestion] = useState<string | null>(null);
-  const [aiSource, setAiSource] = useState<'claude' | 'fallback'>('fallback');
+  const [aiSource, setAiSource] = useState<'ai' | 'fallback'>('fallback');
   const [answer, setAnswer] = useState('');
   const [skipModal, setSkipModal] = useState(false);
   const [skipSeen, setSkipSeen] = useState(false);
@@ -147,7 +147,7 @@ export function ChangeFlow({ data, state, fromId, toId, returnPct, onCommit, go 
           <button type="button" className="btn-primary wide" onClick={submitAnswers} disabled={busy}>
             {busy ? '읽는 중…' : '다음'}
           </button>
-          <p className="fine">AI는 논리적 일관성만 봅니다. 종목 추천, 매매 지시, 옳고 그름 판정은 하지 않습니다. AI를 쓸 수 없으면 기본 질문으로 대체합니다.</p>
+          <p className="fine">AI는 논리적 일관성만 봅니다. 종목 추천, 매매 지시, 옳고 그름 판정은 하지 않습니다. 이 세 답만 Gemini API로 전달되며, AI를 쓸 수 없으면 기본 질문으로 대체합니다.</p>
         </div>
       )}
 

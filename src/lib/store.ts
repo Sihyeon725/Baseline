@@ -147,7 +147,7 @@ function parseHistory(list: unknown): PrincipleHistory[] {
       ai_followup_answered: h.ai_followup_answered === true,
     };
     if (typeof h.ai_followup_answer === 'string') out.ai_followup_answer = h.ai_followup_answer;
-    if (h.ai_source === 'claude' || h.ai_source === 'fallback') out.ai_source = h.ai_source;
+    if (h.ai_source === 'ai' || h.ai_source === 'fallback') out.ai_source = h.ai_source;
     return out;
   });
 }
@@ -166,7 +166,7 @@ function parseCustom(list: unknown): CustomPrinciple[] {
       body: str(c.body),
       created_at: isIso(c.created_at) ? c.created_at : new Date().toISOString(),
       ai_review: typeof c.ai_review === 'string' ? c.ai_review : null,
-      ai_source: c.ai_source === 'claude' ? 'claude' : 'fallback',
+      ai_source: c.ai_source === 'ai' ? 'ai' : 'fallback',
     };
   });
 }

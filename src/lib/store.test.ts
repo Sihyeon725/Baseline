@@ -98,7 +98,7 @@ describe('v2 state', () => {
       ai_followup_answered: false,
       ai_source: 'fallback',
     });
-    s = addCustomPrinciple(s, { principle_id: 'custom_1', title: 't', body: 'b', created_at: '2026-03-01T00:00:00Z', ai_review: null, ai_source: 'claude' });
+    s = addCustomPrinciple(s, { principle_id: 'custom_1', title: 't', body: 'b', created_at: '2026-03-01T00:00:00Z', ai_review: null, ai_source: 'ai' });
     const back = parseState(serializeForExport(s));
     expect(back.holdings[0].ticker).toBe('SPY');
     expect(back.trades[0].ticker).toBe('SPY');

@@ -62,7 +62,7 @@ function customAsPrinciple(c: CustomPrinciple): Principle {
     title: c.title,
     quote: null,
     body: c.body,
-    source_book: c.ai_source === 'claude' ? 'AI 논리 일관성 검토 통과' : '기본 점검 통과 (AI 미사용)',
+    source_book: c.ai_source === 'ai' ? 'AI 논리 일관성 검토 통과' : '기본 점검 통과 (AI 미사용)',
     check_type: 'self',
     user_param: null,
   };
@@ -247,7 +247,7 @@ export default function App() {
         </p>
         <p>
           데이터는 이 기기의 브라우저에만 저장됩니다. 로그인도, 서버 전송도 없습니다. AI 검토를 누를 때만 그 서술이
-          서버를 거칩니다.
+          서버를 거쳐 Google Gemini API로 전달됩니다. 무료 등급이라 전달된 글은 Google이 서비스 개선에 쓸 수 있습니다.
         </p>
         <p>시세는 하루 1회 종가로 갱신되는 지연 데이터입니다.</p>
       </footer>

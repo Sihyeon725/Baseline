@@ -103,7 +103,7 @@ export interface PrincipleHistory {
   ai_followup_answer?: string;
   ai_followup_answered: boolean;
   /** 역질문을 AI가 만들었는지, 규칙 기반 대체였는지 */
-  ai_source?: 'claude' | 'fallback';
+  ai_source?: 'ai' | 'fallback';
 }
 
 /** 불일치 서술 모드에서 통과해 등록된 "나만의 원칙" */
@@ -114,7 +114,7 @@ export interface CustomPrinciple {
   created_at: string;
   /** AI 검토 결과 요약 */
   ai_review: string | null;
-  ai_source: 'claude' | 'fallback';
+  ai_source: 'ai' | 'fallback';
 }
 
 export interface Settings {

@@ -138,7 +138,7 @@ export function Narrative({ data, state, ctx, onRegister, go }: Props) {
           <button type="button" className="btn-primary wide" onClick={submit} disabled={busy}>
             {busy ? '검토 중…' : result ? '다시 검토' : '논리 일관성 검토'}
           </button>
-          <p className="fine">AI는 종목 추천·매매 지시·투자 판단의 옳고 그름 판정을 하지 않습니다. 오직 논리적 일관성만 검토합니다.</p>
+          <p className="fine">AI는 종목 추천·매매 지시·투자 판단의 옳고 그름 판정을 하지 않습니다. 오직 논리적 일관성만 검토합니다. 이 서술과 포트폴리오 요약만 Gemini API로 전달됩니다.</p>
         </div>
       ) : (
         <div className="qa">

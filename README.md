@@ -48,13 +48,13 @@ npm run prices   # 종가 캐시 갱신 → public/prices/latest.json
 
 ## AI (v3)
 
-- 프론트엔드에 API 키 없음. `api/review.ts`(Vercel Function)만 `ANTHROPIC_API_KEY`를 읽는다.
+- 프론트엔드에 API 키 없음. `api/review.ts`(Vercel Function)만 `GEMINI_API_KEY`를 읽어 Google Gemini API를 호출한다 (무료 등급으로 운영 가능. 무료 등급은 호출 수 제한이 있고 입력 데이터가 Google 서비스 개선에 쓰일 수 있어 화면 하단에 명시).
 - 호출 지점 2곳: 원칙 변경 시 역질문(`mode: followup`), 불일치 근거 서술 검토(`mode: review`). 시스템 프롬프트에 종목 추천·매매 지시·옳고 그름 판정 금지를 명시.
 - 상한: IP당 시간당 `AI_PER_IP_PER_HOUR`(기본 12), 전체 일일 `AI_GLOBAL_PER_DAY`(기본 400). `AI_DISABLED=1`이면 503.
 - 함수가 없거나 실패하면 클라이언트가 규칙 기반 대체로 동작한다 (`src/lib/ai.ts`의 `fallback*`). 이력에는 `ai_source: 'fallback'`으로 남는다.
 - 로컬 `vite dev`에는 `/api`가 없으므로 항상 대체 모드다. 실제 AI를 붙여 보려면 `vercel dev`로 실행.
 
-배포 시 Vercel 프로젝트 환경 변수: `ANTHROPIC_API_KEY` (필수), `ANTHROPIC_MODEL` (선택, 기본 `claude-opus-5`).
+배포 시 Vercel 프로젝트 환경 변수: `GEMINI_API_KEY` (필수, Google AI Studio에서 발급), `GEMINI_MODEL` (선택, 기본 `gemini-2.5-flash`).
 
 ## 구조
 

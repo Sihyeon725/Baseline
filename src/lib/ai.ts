@@ -3,7 +3,7 @@
  *  1. 근거 서술 논리 검토 (불일치 판정 후)
  *  2. 원칙 변경 시 역질문 1회 (서술이 모호할 때만)
  *
- * API 키는 프론트엔드에 없다. /api/review (서버리스 함수)를 경유한다.
+ * API 키는 프론트엔드에 없다. /api/review (서버리스 함수 → Gemini API)를 경유한다.
  * 서버가 없거나 실패하면 규칙 기반 대체(fallback)로 동작해 사이트가 멈추지 않는다.
  */
 import { COPY } from './copy';
@@ -27,7 +27,7 @@ export interface ReviewRequest {
 export interface FollowupResult {
   /** null이면 서술이 충분히 분명해 역질문이 필요 없다는 뜻 */
   question: string | null;
-  source: 'claude' | 'fallback';
+  source: 'ai' | 'fallback';
 }
 
 export interface ReviewResult {
@@ -36,7 +36,7 @@ export interface ReviewResult {
   feedback: string;
   /** 일관성이 부족할 때 사용자가 답해볼 질문 */
   questions: string[];
-  source: 'claude' | 'fallback';
+  source: 'ai' | 'fallback';
 }
 
 export const AI_ENDPOINT = '/api/review';
@@ -92,7 +92,7 @@ async function post<T>(body: FollowupRequest | ReviewRequest, timeoutMs = 20000)
 export async function askFollowup(req: FollowupRequest): Promise<FollowupResult> {
   const r = await post<{ question: string | null }>(req);
   if (r && (typeof r.question === 'string' || r.question === null)) {
-    return { question: r.question, source: 'claude' };
+    return { question: r.question, source: 'ai' };
   }
   return fallbackFollowup(req);
 }
@@ -100,7 +100,7 @@ export async function askFollowup(req: FollowupRequest): Promise<FollowupResult>
 export async function reviewNarrative(req: ReviewRequest): Promise<ReviewResult> {
   const r = await post<{ consistent: boolean; feedback: string; questions: string[] }>(req);
   if (r && typeof r.consistent === 'boolean' && typeof r.feedback === 'string') {
-    return { consistent: r.consistent, feedback: r.feedback, questions: Array.isArray(r.questions) ? r.questions : [], source: 'claude' };
+    return { consistent: r.consistent, feedback: r.feedback, questions: Array.isArray(r.questions) ? r.questions : [], source: 'ai' };
   }
   return fallbackReview(req);
 }

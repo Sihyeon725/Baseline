@@ -1,23 +1,22 @@
 /**
- * 명세서 7장 — AI 연동 서버리스 함수 (Vercel Functions).
+ * 명세서 7장 — AI 연동 서버리스 함수 (Vercel Functions). Gemini API 사용.
  *
- * 프론트엔드에는 API 키가 없다. 이 함수만 ANTHROPIC_API_KEY를 읽는다.
+ * 프론트엔드에는 API 키가 없다. 이 함수만 GEMINI_API_KEY를 읽는다.
  * 호출 지점 2곳: mode=followup (원칙 변경 역질문 1회), mode=review (근거 서술 논리 검토).
  *
  * 절대 금지 (시스템 프롬프트에 명시): 종목 추천, 매수/매도 지시, 투자 판단의 옳고 그름 판정.
  * 오직 논리적 일관성만 검토한다.
  *
  * 환경 변수:
- *   ANTHROPIC_API_KEY   필수
- *   ANTHROPIC_MODEL     선택 (기본 claude-opus-5)
+ *   GEMINI_API_KEY      필수 (Google AI Studio에서 발급. 무료 등급은 호출 수 제한 + 입력 데이터가 학습에 쓰일 수 있음)
+ *   GEMINI_MODEL        선택 (기본 gemini-2.5-flash)
  *   AI_PER_IP_PER_HOUR  선택 (기본 12)
- *   AI_GLOBAL_PER_DAY   선택 (기본 400) — 키 노출·남용 시 요금 사고 방지용 전체 상한
+ *   AI_GLOBAL_PER_DAY   선택 (기본 400) — 무료 한도 초과·남용 방지용 전체 상한
  *   AI_DISABLED=1       선택 — 함수 즉시 503 (클라이언트는 규칙 기반 대체로 동작)
  */
-import Anthropic from '@anthropic-ai/sdk';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-const MODEL = process.env.ANTHROPIC_MODEL ?? 'claude-opus-5';
+const MODEL = process.env.GEMINI_MODEL ?? 'gemini-2.5-flash';
 const PER_IP = Number(process.env.AI_PER_IP_PER_HOUR ?? 12);
 const GLOBAL_PER_DAY = Number(process.env.AI_GLOBAL_PER_DAY ?? 400);
 const MAX_FIELD = 2000;
@@ -50,7 +49,8 @@ const RULES_KO = `당신은 투자 원칙 기록 사이트의 "논리 일관성 
 - 사용자의 투자 판단이 옳은지 그른지, 좋은지 나쁜지 판정하지 않는다. 수익 전망도 말하지 않는다.
 - 오직 사용자가 쓴 글의 논리적 일관성만 본다: 전제와 결론이 이어지는가, 이유가 결과를 설명하는가, 서로 모순되는 문장은 없는가, 빠진 고리는 무엇인가.
 - 사용자를 비난하거나 판정하는 말투를 쓰지 않는다. 행동이 아니라 문장을 다룬다.
-- 한국어로, 짧고 담백하게 쓴다. 존댓말.`;
+- 한국어로, 짧고 담백하게 쓴다. 존댓말.
+- 반드시 지정된 JSON 형식으로만 답한다.`;
 
 const FOLLOWUP_SYSTEM = `${RULES_KO}
 
@@ -67,47 +67,83 @@ const REVIEW_SYSTEM = `${RULES_KO}
 - feedback: 2~3문장. 어디가 이어지고 어디가 끊기는지만. 칭찬·비난·조언 금지.
 - questions: consistent가 false일 때 사용자가 답해볼 질문 1~3개. true면 빈 배열.`;
 
+// Gemini responseSchema (OpenAPI 서브셋). null 허용은 nullable로 표현한다.
 const FOLLOWUP_SCHEMA = {
-  type: 'object',
-  properties: { question: { type: ['string', 'null'] } },
+  type: 'OBJECT',
+  properties: { question: { type: 'STRING', nullable: true } },
   required: ['question'],
-  additionalProperties: false,
 };
 
 const REVIEW_SCHEMA = {
-  type: 'object',
+  type: 'OBJECT',
   properties: {
-    consistent: { type: 'boolean' },
-    feedback: { type: 'string' },
-    questions: { type: 'array', items: { type: 'string' } },
+    consistent: { type: 'BOOLEAN' },
+    feedback: { type: 'STRING' },
+    questions: { type: 'ARRAY', items: { type: 'STRING' } },
   },
   required: ['consistent', 'feedback', 'questions'],
-  additionalProperties: false,
 };
 
 function clip(v: unknown): string {
   return typeof v === 'string' ? v.slice(0, MAX_FIELD) : '';
 }
 
-function textOf(res: Anthropic.Message): string {
-  return res.content
-    .filter((b): b is Anthropic.TextBlock => b.type === 'text')
-    .map((b) => b.text)
-    .join('');
+interface GeminiResponse {
+  candidates?: { content?: { parts?: { text?: string }[] }; finishReason?: string }[];
+  promptFeedback?: { blockReason?: string };
+  error?: { code?: number; message?: string; status?: string };
+}
+
+class GeminiError extends Error {
+  constructor(
+    public status: number,
+    message: string,
+  ) {
+    super(message);
+  }
+}
+
+async function generateJson<T>(system: string, user: string, schema: unknown, apiKey: string): Promise<T> {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(MODEL)}:generateContent`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+    body: JSON.stringify({
+      systemInstruction: { parts: [{ text: system }] },
+      contents: [{ role: 'user', parts: [{ text: user }] }],
+      generationConfig: {
+        temperature: 0.3,
+        maxOutputTokens: 1024,
+        responseMimeType: 'application/json',
+        responseSchema: schema,
+      },
+    }),
+    signal: AbortSignal.timeout(25_000),
+  });
+  const json = (await res.json().catch(() => ({}))) as GeminiResponse;
+  if (!res.ok) throw new GeminiError(res.status, json.error?.message ?? `HTTP ${res.status}`);
+  if (json.promptFeedback?.blockReason) throw new GeminiError(502, `blocked: ${json.promptFeedback.blockReason}`);
+  const text = json.candidates?.[0]?.content?.parts?.map((p) => p.text ?? '').join('') ?? '';
+  if (!text.trim()) throw new GeminiError(502, 'empty response');
+  return JSON.parse(text) as T;
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Cache-Control', 'no-store');
   if (req.method !== 'POST') return res.status(405).json({ error: 'method' });
-  if (process.env.AI_DISABLED === '1' || !process.env.ANTHROPIC_API_KEY) return res.status(503).json({ error: 'disabled' });
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (process.env.AI_DISABLED === '1' || !apiKey) return res.status(503).json({ error: 'disabled' });
 
   const ip = (req.headers['x-forwarded-for'] as string | undefined)?.split(',')[0]?.trim() || req.socket?.remoteAddress || 'unknown';
   if (rateLimited(ip)) return res.status(429).json({ error: 'rate_limited' });
 
-  const body = (typeof req.body === 'string' ? JSON.parse(req.body) : req.body) as Record<string, unknown> | undefined;
+  let body: Record<string, unknown> | undefined;
+  try {
+    body = (typeof req.body === 'string' ? JSON.parse(req.body) : req.body) as Record<string, unknown> | undefined;
+  } catch {
+    return res.status(400).json({ error: 'body' });
+  }
   if (!body || typeof body !== 'object') return res.status(400).json({ error: 'body' });
-
-  const client = new Anthropic();
 
   try {
     if (body.mode === 'followup') {
@@ -119,16 +155,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         `[왜 바뀌었나]\n${clip(body.why)}`,
         `[새 원칙을 지키면 무엇을 포기하나]\n${clip(body.tradeoff)}`,
       ].join('\n');
-      const out = await client.messages.create({
-        model: MODEL,
-        max_tokens: 1024,
-        system: [{ type: 'text', text: FOLLOWUP_SYSTEM, cache_control: { type: 'ephemeral' } }],
-        output_config: { effort: 'low', format: { type: 'json_schema', schema: FOLLOWUP_SCHEMA } },
-        messages: [{ role: 'user', content: user }],
-      });
-      if (out.stop_reason === 'refusal') return res.status(502).json({ error: 'refusal' });
-      const parsed = JSON.parse(textOf(out)) as { question: string | null };
-      return res.status(200).json({ question: typeof parsed.question === 'string' && parsed.question.trim() ? parsed.question.trim() : null });
+      const parsed = await generateJson<{ question: string | null }>(FOLLOWUP_SYSTEM, user, FOLLOWUP_SCHEMA, apiKey);
+      const q = typeof parsed.question === 'string' ? parsed.question.trim() : '';
+      return res.status(200).json({ question: q && q.toLowerCase() !== 'null' ? q : null });
     }
 
     if (body.mode === 'review') {
@@ -138,15 +167,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         `[어긋난 규칙]\n${failed.length ? failed.map((f) => `- ${f}`).join('\n') : '(없음)'}`,
         `[사용자 서술]\n${clip(body.narrative)}`,
       ].join('\n\n');
-      const out = await client.messages.create({
-        model: MODEL,
-        max_tokens: 2048,
-        system: [{ type: 'text', text: REVIEW_SYSTEM, cache_control: { type: 'ephemeral' } }],
-        output_config: { effort: 'low', format: { type: 'json_schema', schema: REVIEW_SCHEMA } },
-        messages: [{ role: 'user', content: user }],
-      });
-      if (out.stop_reason === 'refusal') return res.status(502).json({ error: 'refusal' });
-      const parsed = JSON.parse(textOf(out)) as { consistent: boolean; feedback: string; questions: string[] };
+      const parsed = await generateJson<{ consistent: boolean; feedback: string; questions: string[] }>(REVIEW_SYSTEM, user, REVIEW_SCHEMA, apiKey);
       return res.status(200).json({
         consistent: parsed.consistent === true,
         feedback: String(parsed.feedback ?? ''),
@@ -156,9 +177,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     return res.status(400).json({ error: 'mode' });
   } catch (e) {
-    if (e instanceof Anthropic.RateLimitError) return res.status(429).json({ error: 'upstream_rate' });
-    if (e instanceof Anthropic.AuthenticationError) return res.status(503).json({ error: 'auth' });
-    if (e instanceof Anthropic.APIError) return res.status(502).json({ error: 'upstream', status: e.status });
+    if (e instanceof GeminiError) {
+      if (e.status === 429) return res.status(429).json({ error: 'upstream_rate' });
+      if (e.status === 401 || e.status === 403) return res.status(503).json({ error: 'auth' });
+      return res.status(502).json({ error: 'upstream', status: e.status });
+    }
     return res.status(500).json({ error: 'internal' });
   }
 }
