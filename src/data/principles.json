@@ -1,0 +1,83 @@
+{
+  "version": 1,
+  "masters": [
+    {
+      "id": "bogle",
+      "name": "존 보글",
+      "name_en": "John Bogle",
+      "keywords": "장기 · 인덱스",
+      "oneliner": "시장을 이기려 하지 말고, 시장 전체를 오래 가진다.",
+      "color": "#17243A"
+    },
+    {
+      "id": "lynch",
+      "name": "피터 린치",
+      "name_en": "Peter Lynch",
+      "keywords": "이해하는 기업",
+      "oneliner": "내가 설명할 수 있는 기업에만 투자한다.",
+      "color": "#2F4A3F"
+    },
+    {
+      "id": "buffett",
+      "name": "워런 버핏",
+      "name_en": "Warren Buffett",
+      "keywords": "집중 · 장기보유",
+      "oneliner": "좋은 기업을 적정한 가격에, 오래.",
+      "color": "#5B4A3A"
+    },
+    {
+      "id": "dalio",
+      "name": "레이 달리오",
+      "name_en": "Ray Dalio",
+      "keywords": "분산 · 자산배분",
+      "oneliner": "자산군을 나누어 어떤 환경에도 버틴다.",
+      "color": "#4F5B6B"
+    }
+  ],
+  "principles": [
+    {
+      "principle_id": "bogle_01",
+      "master": "bogle",
+      "title": "(더미) 인덱스 중심으로 보유한다.",
+      "quote": null,
+      "body": "(더미 문장입니다. 작성자가 본인의 말로 교체하세요.) 개별 종목을 고르는 대신 시장 전체를 사는 것을 기본으로 둡니다. 비용이 낮고, 장기적으로 대부분의 액티브 운용을 이깁니다. 인덱스 비중의 하한선을 스스로 정해 두고 지킵니다.",
+      "source_book": "모든 주식을 소유하라",
+      "check_type": "auto",
+      "user_param": {
+        "key": "index_min_weight",
+        "label": "인덱스 최소 비중",
+        "unit": "%",
+        "default": 60,
+        "min": 0,
+        "max": 100
+      }
+    },
+    {
+      "principle_id": "lynch_01",
+      "master": "lynch",
+      "title": "(더미) 아는 것에 투자한다.",
+      "quote": null,
+      "body": "(더미 문장입니다. 작성자가 본인의 말로 교체하세요.) 내가 그 회사가 무엇으로 돈을 버는지 한 문단으로 설명할 수 없다면 사지 않습니다. 보유하는 모든 개별 종목에 대해 '왜 아는가'를 글로 남깁니다.",
+      "source_book": "전설로 떠나는 월가의 영웅",
+      "check_type": "auto",
+      "user_param": null
+    },
+    {
+      "principle_id": "buffett_01",
+      "master": "buffett",
+      "title": "(더미) 소수 종목에 집중한다.",
+      "quote": null,
+      "body": "(더미 문장입니다. 작성자가 본인의 말로 교체하세요.) 확신이 있는 소수의 기업에만 자금을 둡니다. 종목 수가 늘수록 각 기업을 제대로 알기 어려워집니다. 최대 종목 수를 정해 두고, 새로 사려면 하나를 내보낼 이유부터 씁니다.",
+      "source_book": "워런 버핏의 주주 서한",
+      "check_type": "self",
+      "user_param": {
+        "key": "max_holdings",
+        "label": "최대 종목 수",
+        "unit": "개",
+        "default": 10,
+        "min": 1,
+        "max": 100
+      }
+    }
+  ]
+}
