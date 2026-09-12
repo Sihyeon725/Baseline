@@ -20,7 +20,7 @@ interface Props {
 
 const NAV: { hash: string; label: string; route: Route }[] = [
   { hash: '#/library', label: '원칙 라이브러리', route: 'library' },
-  { hash: '#/constitution', label: '나의 헌법', route: 'constitution' },
+  { hash: '#/constitution', label: '나의 기준', route: 'constitution' },
   { hash: '#/portfolio', label: '포트폴리오', route: 'portfolio' },
   { hash: '#/check', label: '점검', route: 'check' },
   { hash: '#/history', label: '기록', route: 'history' },

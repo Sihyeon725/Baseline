@@ -189,7 +189,7 @@ svg { flex: 0 0 auto; }
   padding: 28px 0 8px;
 }
 .hero-copy { padding-top: 6px; }
-/* 히어로: "나의 투자 헌법" 카드 미리보기 (실제 화면과 같은 스타일) */
+/* 히어로: "나의 투자 기준" 카드 미리보기 (실제 화면과 같은 스타일) */
 .hero-art {
   display: flex;
   align-items: center;

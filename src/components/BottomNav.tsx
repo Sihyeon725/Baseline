@@ -21,7 +21,7 @@ export function BottomNav({ route, count, go }: Props) {
           <IconBook />
           {count > 0 && <span className="bn-badge">{count}</span>}
         </span>
-        <span>헌법</span>
+        <span>기준</span>
       </button>
       <button type="button" className={cls('portfolio')} onClick={() => go('#/portfolio')}>
         <IconPie />

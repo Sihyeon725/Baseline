@@ -48,7 +48,7 @@ export function ImportExport({ state, onReplaceState }: Props) {
       if (typeof navigator.share === 'function') {
         const file = new File([text], name, { type: 'application/json' });
         if (typeof navigator.canShare !== 'function' || navigator.canShare({ files: [file] })) {
-          await navigator.share({ files: [file], title: '나의 투자 헌법 백업' });
+          await navigator.share({ files: [file], title: '나의 투자 기준 백업' });
           setMsg('공유 창을 열었습니다.');
           return;
         }

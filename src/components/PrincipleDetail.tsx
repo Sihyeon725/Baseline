@@ -92,7 +92,7 @@ export function PrincipleDetail({ data, principle: p, state, onAdopt, onDrop, on
       {adopted ? (
         <div className="cta-row">
           <span className="cta-done">
-            <IconCheck /> 내 투자 헌법에 있습니다
+            <IconCheck /> 내 투자 기준에 있습니다
           </span>
           <button type="button" className="btn-ghost" onClick={() => onDrop(p.principle_id)}>
             내려놓기
@@ -100,7 +100,7 @@ export function PrincipleDetail({ data, principle: p, state, onAdopt, onDrop, on
         </div>
       ) : (
         <button type="button" className="btn-primary wide" onClick={() => onAdopt(p)}>
-          <IconPlus /> 내 투자 헌법에 추가
+          <IconPlus /> 내 투자 기준에 추가
         </button>
       )}
     </article>

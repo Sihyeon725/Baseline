@@ -140,7 +140,7 @@ export function Check({ data, state, ctx, snapshot, go }: Props) {
       {/* ===== 채택 원칙별 점검 ===== */}
       {(adoptedAuto.length > 0 || adoptedSelf.length > 0 || customs.length > 0) && (
         <section className="section-block">
-          <h2 className="h3">나의 헌법 점검표</h2>
+          <h2 className="h3">나의 기준 점검표</h2>
           <ul className="check-table">
             {adoptedAuto.map((r) => (
               <li key={r.principle.principle_id} className={r.outcome ? (r.outcome.pass ? 'ck pass' : 'ck fail') : 'ck none'}>

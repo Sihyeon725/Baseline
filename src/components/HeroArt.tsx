@@ -1,7 +1,7 @@
 import { IconCheck } from './Icons';
 
 /**
- * 히어로 비주얼 — 사진·일러스트 없이, 이 사이트가 만들어 주는 결과물("나의 투자 헌법" 카드)을
+ * 히어로 비주얼 — 사진·일러스트 없이, 이 사이트가 만들어 주는 결과물("나의 투자 기준" 카드)을
  * 실제 화면과 같은 스타일로 미리 보여준다. 내용은 예시이며 데이터와 연결되지 않는다.
  *
  * 사진을 쓰지 않는 이유: 출처·라이선스가 불명확한 이미지(AI 생성 포함)는 쓰지 않는다.
@@ -17,8 +17,8 @@ export function HeroArt() {
   return (
     <div className="hero-art" aria-hidden>
       <div className="hero-paper">
-        <p className="hero-paper-kicker">MY INVESTMENT CONSTITUTION</p>
-        <p className="hero-paper-title">나의 투자 헌법</p>
+        <p className="hero-paper-kicker">MY BASELINE</p>
+        <p className="hero-paper-title">나의 투자 기준</p>
         <ol className="hero-paper-list">
           {SAMPLE.map((s) => (
             <li key={s.n} style={{ ['--spine' as string]: s.color }}>

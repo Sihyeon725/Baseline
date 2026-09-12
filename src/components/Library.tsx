@@ -28,7 +28,7 @@ export function Library({ data, state, masterFilter, go }: Props) {
       <section className="page-head">
         <p className="kicker">PRINCIPLE LIBRARY</p>
         <h1 className="h1">원칙 라이브러리</h1>
-        <p className="sub">읽고, 마음에 드는 원칙을 나의 헌법에 추가하세요.</p>
+        <p className="sub">읽고, 마음에 드는 원칙을 나의 기준에 추가하세요.</p>
       </section>
 
       <div className="chips" role="tablist" aria-label="대가별 보기">
@@ -73,7 +73,7 @@ export function Library({ data, state, masterFilter, go }: Props) {
                     {masters.get(p.master)?.name_en ?? p.master}
                     {adopted && (
                       <span className="prow-adopted">
-                        <IconCheck width={14} height={14} /> 헌법에 포함
+                        <IconCheck width={14} height={14} /> 기준에 포함
                       </span>
                     )}
                   </span>

@@ -37,9 +37,9 @@ export function Constitution({ data, byId, state, onDrop, onReAdopt, onParam, on
     <>
       <section className="page-head with-art">
         <div>
-          <p className="kicker">MY INVESTMENT CONSTITUTION</p>
-          <h1 className="h1">나의 투자 헌법</h1>
-          <p className="sub">나를 위한, 가장 확실한 투자 기준</p>
+          <p className="kicker">MY BASELINE</p>
+          <h1 className="h1">나의 투자 기준</h1>
+          <p className="sub">채택한 원칙이 모여 나의 기준이 됩니다</p>
         </div>
         <span className="mini-art" aria-hidden />
       </section>

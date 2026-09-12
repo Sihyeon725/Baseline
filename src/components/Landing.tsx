@@ -36,7 +36,7 @@ export function Landing({ data, go }: Props) {
           <p className="lead">
             대가들의 투자 원칙을 읽고,
             <br />
-            나의 투자 헌법으로 만들어보세요.
+            나의 투자 기준으로 만들어보세요.
           </p>
           <button type="button" className="btn-primary" onClick={() => go('#/library')}>
             투자 원칙 둘러보기 <IconArrowRight />

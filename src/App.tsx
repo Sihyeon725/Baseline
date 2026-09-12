@@ -117,7 +117,7 @@ export default function App() {
 
   const handleAdopt = (p: Principle) => {
     setState((s) => adopt(s, p));
-    setToast('나의 투자 헌법에 추가했습니다');
+    setToast('나의 투자 기준에 추가했습니다');
   };
   /** v3: 내려놓기는 서술을 거친다 (명세서 [5] 원칙 폐기 → [6] 서술 필수). 잠금은 아니다 — 다 쓰면 통과된다. */
   const handleDrop = (id: string) => go(`#/change/${id}/-`);
