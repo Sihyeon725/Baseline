@@ -111,8 +111,8 @@ class GeminiError extends Error {
 const EXCLUDE = /lite|preview|exp|tts|image|live|embedding|audio|thinking|vision|8b|1\.5|1\.0/i;
 
 /** 계정에서 쓸 수 있는 모델 목록을 받아 generateContent 지원 flash 계열 중 가장 최신 버전을 고른다 */
-async function resolveModel(apiKey: string, force = false): Promise<string> {
-  if (resolvedModel && !force) return resolvedModel;
+async function resolveModel(apiKey: string, force = false, skip: Set<string> = new Set()): Promise<string> {
+  if (resolvedModel && !force && !skip.has(resolvedModel)) return resolvedModel;
   const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200', {
     headers: { 'x-goog-api-key': apiKey },
     signal: AbortSignal.timeout(15_000),
@@ -123,18 +123,20 @@ async function resolveModel(apiKey: string, force = false): Promise<string> {
     .filter((m) => (m.supportedGenerationMethods ?? []).includes('generateContent'))
     .map((m) => m.name.replace(/^models\//, ''));
   availableModels = usable;
-  const ok = usable.filter((n) => !failedModels.has(n));
+  const ok = usable.filter((n) => !failedModels.has(n) && !skip.has(n));
   if (ok.includes(PREFERRED_MODEL)) return (resolvedModel = PREFERRED_MODEL);
   const version = (n: string) => Number(/gemini-(\d+(?:\.\d+)?)/.exec(n)?.[1] ?? 0);
   const flash = ok.filter((n) => /gemini-\d/.test(n) && /flash/.test(n) && !EXCLUDE.test(n)).sort((a, b) => version(b) - version(a) || a.length - b.length);
   const any = ok.filter((n) => /gemini-\d/.test(n) && !EXCLUDE.test(n)).sort((a, b) => version(b) - version(a) || a.length - b.length);
   const pick = flash[0] ?? any[0] ?? ok[0];
   if (!pick) throw new GeminiError(502, 'no usable model');
-  return (resolvedModel = pick);
+  // 일시적 회피(skip)로 고른 모델은 캐시하지 않는다 — 다음 요청은 다시 기본 모델부터
+  if (skip.size === 0) resolvedModel = pick;
+  return pick;
 }
 
-async function generateJson<T>(system: string, user: string, schema: unknown, apiKey: string, retries = 3): Promise<T> {
-  const model = await resolveModel(apiKey);
+async function generateJson<T>(system: string, user: string, schema: unknown, apiKey: string, retries = 3, skip: Set<string> = new Set()): Promise<T> {
+  const model = await resolveModel(apiKey, skip.size > 0, skip);
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
   const res = await fetch(url, {
     method: 'POST',
@@ -153,10 +155,15 @@ async function generateJson<T>(system: string, user: string, schema: unknown, ap
   });
   const json = (await res.json().catch(() => ({}))) as GeminiResponse;
   if (res.status === 404 && retries > 0) {
-    // 목록에는 있지만 폐기된 모델: 제외하고 다음 후보로 재시도
+    // 목록에는 있지만 폐기된 모델: 영구 제외하고 다음 후보로 재시도
     failedModels.add(model);
-    await resolveModel(apiKey, true);
-    return generateJson<T>(system, user, schema, apiKey, retries - 1);
+    resolvedModel = null;
+    return generateJson<T>(system, user, schema, apiKey, retries - 1, skip);
+  }
+  if ((res.status === 503 || res.status === 429) && retries > 0) {
+    // 혼잡·한도: 이 요청만 다른 모델로 넘긴다 (무료 등급은 모델별 한도가 따로 있다)
+    skip.add(model);
+    return generateJson<T>(system, user, schema, apiKey, retries - 1, skip);
   }
   if (!res.ok) throw new GeminiError(res.status, json.error?.message ?? `HTTP ${res.status}`);
   if (json.promptFeedback?.blockReason) throw new GeminiError(502, `blocked: ${json.promptFeedback.blockReason}`);
