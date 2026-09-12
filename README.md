@@ -54,7 +54,7 @@ npm run prices   # 종가 캐시 갱신 → public/prices/latest.json
 - 함수가 없거나 실패하면 클라이언트가 규칙 기반 대체로 동작한다 (`src/lib/ai.ts`의 `fallback*`). 이력에는 `ai_source: 'fallback'`으로 남는다.
 - 로컬 `vite dev`에는 `/api`가 없으므로 항상 대체 모드다. 실제 AI를 붙여 보려면 `vercel dev`로 실행.
 
-배포 시 Vercel 프로젝트 환경 변수: `GEMINI_API_KEY` (필수, Google AI Studio에서 발급), `GEMINI_MODEL` (선택, 기본 `gemini-2.5-flash`).
+배포 시 Vercel 프로젝트 환경 변수: `GEMINI_API_KEY` (필수, Google AI Studio에서 발급), `GEMINI_MODEL` (선택, 기본 `gemini-3.8-flash`. 계정에 없거나 폐기되면 사용 가능한 flash 계열을 자동 선택).
 
 ## 구조
 

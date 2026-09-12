@@ -9,7 +9,7 @@
  *
  * 환경 변수:
  *   GEMINI_API_KEY      필수 (Google AI Studio에서 발급. 무료 등급은 호출 수 제한 + 입력 데이터가 학습에 쓰일 수 있음)
- *   GEMINI_MODEL        선택 (기본 gemini-2.5-flash). 계정에 없으면 ListModels로 flash 계열을 자동 선택
+ *   GEMINI_MODEL        선택 (기본 gemini-3.8-flash). 계정에 없으면 ListModels로 flash 계열을 자동 선택
  *   AI_PER_IP_PER_HOUR  선택 (기본 12)
  *   AI_GLOBAL_PER_DAY   선택 (기본 400) — 무료 한도 초과·남용 방지용 전체 상한
  *   AI_DISABLED=1       선택 — 함수 즉시 503 (클라이언트는 규칙 기반 대체로 동작)
@@ -17,7 +17,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 /** 우선 쓸 모델. 계정에서 안 보이면(404) ListModels로 사용 가능한 flash 계열을 자동 선택한다 */
-const PREFERRED_MODEL = process.env.GEMINI_MODEL ?? 'gemini-2.5-flash';
+const PREFERRED_MODEL = process.env.GEMINI_MODEL ?? 'gemini-3.8-flash';
 let resolvedModel: string | null = null;
 let availableModels: string[] = [];
 /** 목록에는 있지만 호출하면 404가 나는(폐기된) 모델 */
