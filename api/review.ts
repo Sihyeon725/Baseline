@@ -20,6 +20,8 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 const PREFERRED_MODEL = process.env.GEMINI_MODEL ?? 'gemini-2.5-flash';
 let resolvedModel: string | null = null;
 let availableModels: string[] = [];
+/** 목록에는 있지만 호출하면 404가 나는(폐기된) 모델 */
+const failedModels = new Set<string>();
 const PER_IP = Number(process.env.AI_PER_IP_PER_HOUR ?? 12);
 const GLOBAL_PER_DAY = Number(process.env.AI_GLOBAL_PER_DAY ?? 400);
 const MAX_FIELD = 2000;
@@ -121,16 +123,17 @@ async function resolveModel(apiKey: string, force = false): Promise<string> {
     .filter((m) => (m.supportedGenerationMethods ?? []).includes('generateContent'))
     .map((m) => m.name.replace(/^models\//, ''));
   availableModels = usable;
-  if (usable.includes(PREFERRED_MODEL)) return (resolvedModel = PREFERRED_MODEL);
+  const ok = usable.filter((n) => !failedModels.has(n));
+  if (ok.includes(PREFERRED_MODEL)) return (resolvedModel = PREFERRED_MODEL);
   const version = (n: string) => Number(/gemini-(\d+(?:\.\d+)?)/.exec(n)?.[1] ?? 0);
-  const flash = usable.filter((n) => /gemini-\d/.test(n) && /flash/.test(n) && !EXCLUDE.test(n)).sort((a, b) => version(b) - version(a) || a.length - b.length);
-  const any = usable.filter((n) => /gemini-\d/.test(n) && !EXCLUDE.test(n)).sort((a, b) => version(b) - version(a) || a.length - b.length);
-  const pick = flash[0] ?? any[0] ?? usable[0];
+  const flash = ok.filter((n) => /gemini-\d/.test(n) && /flash/.test(n) && !EXCLUDE.test(n)).sort((a, b) => version(b) - version(a) || a.length - b.length);
+  const any = ok.filter((n) => /gemini-\d/.test(n) && !EXCLUDE.test(n)).sort((a, b) => version(b) - version(a) || a.length - b.length);
+  const pick = flash[0] ?? any[0] ?? ok[0];
   if (!pick) throw new GeminiError(502, 'no usable model');
   return (resolvedModel = pick);
 }
 
-async function generateJson<T>(system: string, user: string, schema: unknown, apiKey: string, retry = true): Promise<T> {
+async function generateJson<T>(system: string, user: string, schema: unknown, apiKey: string, retries = 3): Promise<T> {
   const model = await resolveModel(apiKey);
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
   const res = await fetch(url, {
@@ -149,10 +152,11 @@ async function generateJson<T>(system: string, user: string, schema: unknown, ap
     signal: AbortSignal.timeout(25_000),
   });
   const json = (await res.json().catch(() => ({}))) as GeminiResponse;
-  if (res.status === 404 && retry) {
-    // 모델이 사라졌거나 이름이 바뀐 경우: 목록을 다시 받아 한 번만 재시도
+  if (res.status === 404 && retries > 0) {
+    // 목록에는 있지만 폐기된 모델: 제외하고 다음 후보로 재시도
+    failedModels.add(model);
     await resolveModel(apiKey, true);
-    return generateJson<T>(system, user, schema, apiKey, false);
+    return generateJson<T>(system, user, schema, apiKey, retries - 1);
   }
   if (!res.ok) throw new GeminiError(res.status, json.error?.message ?? `HTTP ${res.status}`);
   if (json.promptFeedback?.blockReason) throw new GeminiError(502, `blocked: ${json.promptFeedback.blockReason}`);
@@ -169,7 +173,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // 진단용: 어떤 모델이 잡혔는지 (키는 노출하지 않는다)
     try {
       const model = await resolveModel(apiKey);
-      return res.status(200).json({ model, preferred: PREFERRED_MODEL, available: availableModels });
+      return res.status(200).json({ model, preferred: PREFERRED_MODEL, failed: [...failedModels], available: availableModels });
     } catch (e) {
       return res.status(502).json({ error: e instanceof GeminiError ? e.message : 'internal' });
     }
@@ -222,7 +226,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (e instanceof GeminiError) {
       if (e.status === 429) return res.status(429).json({ error: 'upstream_rate' });
       if (e.status === 401 || e.status === 403) return res.status(503).json({ error: 'auth' });
-      return res.status(502).json({ error: 'upstream', status: e.status });
+      return res.status(502).json({ error: 'upstream', status: e.status, detail: e.message.slice(0, 300) });
     }
     return res.status(500).json({ error: 'internal' });
   }
